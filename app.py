@@ -1,6 +1,6 @@
 # ============================================================
-# Q-VAJRA™ — Quantum + Deep AI Defence Brain
-# National Strategic Intelligence Simulator (DRDO R&D Prototype)
+# Q-VAJRA™ — Quantum + AI Defence Brain (Cloud Compatible)
+# National Strategic Intelligence Simulator
 # ============================================================
 
 import streamlit as st
@@ -8,8 +8,7 @@ import numpy as np
 import random
 import time
 from datetime import datetime
-import torch
-import torch.nn as nn
+from sklearn.linear_model import LogisticRegression
 
 # ============================================================
 # UI CONFIG
@@ -22,38 +21,42 @@ st.set_page_config(
 )
 
 # ============================================================
-# DEEP AI MODEL (Threat Prediction Neural Network)
+# AI THREAT PREDICTION MODEL (Real AI - sklearn)
 # ============================================================
 
-class ThreatNet(nn.Module):
-    def __init__(self):
-        super(ThreatNet, self).__init__()
-        self.fc1 = nn.Linear(3, 32)
-        self.fc2 = nn.Linear(32, 16)
-        self.fc3 = nn.Linear(16, 1)
+@st.cache_resource
+def load_ai_model():
+    # Dummy training data for prototype
+    X = []
+    y = []
 
-    def forward(self, x):
-        x = torch.relu(self.fc1(x))
-        x = torch.relu(self.fc2(x))
-        x = torch.sigmoid(self.fc3(x))
-        return x
+    for _ in range(500):
+        intensity = random.randint(1, 10)
+        threat_code = random.randint(1, 8)
+        zone = random.randint(1, 5)
+        risk = 1 if intensity * threat_code > 20 else 0
 
+        X.append([intensity, threat_code, zone])
+        y.append(risk)
 
-# Load AI Model (random initialized for prototype)
-ai_model = ThreatNet()
+    model = LogisticRegression()
+    model.fit(X, y)
+    return model
+
+ai_model = load_ai_model()
 
 # ============================================================
-# QUANTUM OPTIMIZATION ENGINE (Simulated)
+# QUANTUM ENGINE (SIMULATED)
 # ============================================================
 
 class QuantumEngine:
-    def quantum_entropy(self):
+    def entropy(self):
         return np.random.uniform(0.6, 1.0)
 
     def optimize_strategy(self, strategies):
-        probs = [self.quantum_entropy() for _ in strategies]
-        best_idx = probs.index(max(probs))
-        return strategies[best_idx], probs[best_idx]
+        probs = [self.entropy() for _ in strategies]
+        best = probs.index(max(probs))
+        return strategies[best], probs[best]
 
 
 # ============================================================
@@ -65,12 +68,7 @@ class StrategicBrain:
         self.quantum = QuantumEngine()
         self.model = ai_model
 
-    def predict_threat_level(self, intensity, threat_code, zone_code):
-        x = torch.tensor([[intensity, threat_code, zone_code]], dtype=torch.float32)
-        confidence = self.model(x).item()
-        return confidence
-
-    def analyze(self, threat_type, intensity, location, zone_code):
+    def analyze(self, threat_type, intensity, location, zone):
 
         threat_map = {
             "Enemy Aircraft": 1,
@@ -85,7 +83,7 @@ class StrategicBrain:
 
         threat_code = threat_map[threat_type]
 
-        ai_confidence = self.predict_threat_level(intensity, threat_code, zone_code)
+        ai_risk = self.model.predict_proba([[intensity, threat_code, zone]])[0][1]
 
         strategies = [
             "Drone Swarm Interception",
@@ -99,16 +97,17 @@ class StrategicBrain:
 
         best_strategy, quantum_conf = self.quantum.optimize_strategy(strategies)
 
-        final_confidence = round((ai_confidence * 0.6 + quantum_conf * 0.4) * 100, 2)
-        risk_score = min(100, int(final_confidence * (intensity / 10)))
+        final_conf = round((ai_risk * 0.6 + quantum_conf * 0.4) * 100, 2)
+        risk_score = int(final_conf * (intensity / 10))
 
         return {
             "Threat Type": threat_type,
             "Location": location,
             "Intensity": intensity,
-            "AI Confidence (%)": round(ai_confidence * 100, 2),
+            "Zone": zone,
+            "AI Risk Confidence (%)": round(ai_risk * 100, 2),
             "Quantum Confidence (%)": round(quantum_conf * 100, 2),
-            "Final Decision Confidence (%)": final_confidence,
+            "Final Decision Confidence (%)": final_conf,
             "Recommended Strategy": best_strategy,
             "Risk Score": risk_score,
             "Decision Time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -148,7 +147,7 @@ def system_status():
 # STREAMLIT DASHBOARD
 # ============================================================
 
-st.title("🛡 Q-VAJRA™ — Quantum + Deep AI Defence Brain")
+st.title("🛡 Q-VAJRA™ — Quantum + AI Defence Brain")
 st.subheader("National Strategic Intelligence & War Simulation System")
 
 brain = StrategicBrain()
@@ -175,7 +174,7 @@ with col1:
 
     intensity = st.slider("Threat Intensity Level", 1, 10, 5)
     location = st.text_input("Threat Location", "Northern Border Sector")
-    zone_code = st.slider("Strategic Zone Code", 1, 5, 3)
+    zone = st.slider("Strategic Zone Code", 1, 5, 3)
 
     execute = st.button("⚡ Execute Quantum-AI Analysis")
 
@@ -187,9 +186,9 @@ with col2:
     st.markdown("## 🧠 Quantum-AI Strategic Decision")
 
     if execute:
-        with st.spinner("Running Deep AI + Quantum Probability Engine..."):
+        with st.spinner("Running AI + Quantum Probability Engine..."):
             time.sleep(2)
-            result = brain.analyze(threat_type, intensity, location, zone_code)
+            result = brain.analyze(threat_type, intensity, location, zone)
 
         st.success("Strategic Intelligence Generated")
 
@@ -248,5 +247,5 @@ with c3:
 # ============================================================
 
 st.markdown("---")
-st.caption("🇮🇳 Q-VAJRA™ — Quantum + Deep AI Defence Brain | DRDO Strategic R&D Prototype")
-st.caption("This system is a national defence research simulator for strategic intelligence and war-gaming.")
+st.caption("🇮🇳 Q-VAJRA™ — Quantum + AI Defence Brain | DRDO Strategic R&D Prototype")
+st.caption("Cloud compatible AI + Quantum war-gaming intelligence system.")
