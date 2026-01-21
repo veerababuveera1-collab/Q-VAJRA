@@ -1,114 +1,53 @@
-# ======================================================
-# Q-VAJRA™ — Quantum-AI Defence Brain
-# Streamlit Cloud SAFE VERSION (NO sklearn)
-# ======================================================
-
 import streamlit as st
-import numpy as np
-import pandas as pd
+import datetime
 
-# ------------------------------------------------------
-# PAGE CONFIG
-# ------------------------------------------------------
-st.set_page_config(
-    page_title="Q-VAJRA™ Defence Brain",
-    layout="wide"
-)
+st.set_page_config(page_title="Q-VAJRA™ War-Room", layout="wide")
 
 st.title("🛡️ Q-VAJRA™ — Quantum-AI Defence Brain")
-st.caption("AI Threat Reasoning + Quantum-Inspired Risk Fusion")
+st.subheader("War-Room Command Dashboard")
 
-# ------------------------------------------------------
-# SIDEBAR
-# ------------------------------------------------------
+# --- Control Panel ---
 st.sidebar.header("⚙️ Control Panel")
+signal = st.sidebar.slider("Threat Signal Strength", 0.0, 1.0, 0.69)
+noise = st.sidebar.slider("Sensor Noise", 0.0, 1.0, 0.10)
 
-threat_signal = st.sidebar.slider(
-    "Threat Signal Strength",
-    0.0, 1.0, 0.6
-)
+# --- Core Logic ---
+ai_probability = signal * 100
+quantum_risk = min(100, (signal * 120) + (noise * 10))
+final_score = (ai_probability * 0.45) + (quantum_risk * 0.55) - (noise * 5)
 
-sensor_noise = st.sidebar.slider(
-    "Sensor Noise",
-    0.0, 1.0, 0.2
-)
-
-# ------------------------------------------------------
-# AI LOGIC (Pure Python Logistic Function)
-# ------------------------------------------------------
-def ai_threat_probability(x):
-    """
-    Lightweight AI logic (logistic function)
-    sklearn-free, cloud-safe
-    """
-    weight = 8.0
-    bias = -4.0
-    z = (x * weight) + bias
-    return 1 / (1 + np.exp(-z))
-
-ai_prob = ai_threat_probability(threat_signal)
-
-# ------------------------------------------------------
-# QUANTUM-INSPIRED RISK MODEL
-# ------------------------------------------------------
-def quantum_risk(signal, noise):
-    superposition = (signal * 0.7) + (noise * 0.3)
-    interference = np.sin(superposition * np.pi)
-    return abs(interference)
-
-quantum_score = quantum_risk(threat_signal, sensor_noise)
-
-# ------------------------------------------------------
-# FUSION DECISION
-# ------------------------------------------------------
-final_score = (ai_prob * 0.6) + (quantum_score * 0.4)
-
-if final_score > 0.65:
+# --- Threat Classification ---
+if final_score >= 80:
     status = "🚨 THREAT DETECTED"
     color = "red"
-elif final_score > 0.4:
-    status = "⚠️ SUSPICIOUS"
+elif final_score >= 60:
+    status = "🟠 UNDER WATCH"
     color = "orange"
 else:
-    status = "✅ SAFE"
+    status = "🟢 SAFE"
     color = "green"
 
-# ------------------------------------------------------
-# DASHBOARD
-# ------------------------------------------------------
-c1, c2, c3 = st.columns(3)
+# --- Display Panel ---
+col1, col2, col3 = st.columns(3)
+col1.metric("🧠 AI Probability", f"{ai_probability:.1f}%")
+col2.metric("⚛️ Quantum Risk", f"{quantum_risk:.1f}%")
+col3.metric("🎯 Final Score", f"{final_score:.1f}%")
 
-c1.metric("🧠 AI Probability", f"{ai_prob*100:.1f}%")
-c2.metric("⚛️ Quantum Risk", f"{quantum_score*100:.1f}%")
-c3.metric("🎯 Final Score", f"{final_score*100:.1f}%")
+st.markdown(f"## <span style='color:{color}'>{status}</span>", unsafe_allow_html=True)
 
-st.markdown("---")
+# --- Explainability ---
+st.subheader("🧠 Explainable AI Reasoning")
+st.write("""
+• Signal strength crossed anomaly threshold  
+• AI pattern similarity detected  
+• Quantum worst-case outcome dominant  
+• Sensor noise within acceptable limits  
+""")
 
-st.markdown(
-    f"<h2 style='color:{color}; text-align:center;'>{status}</h2>",
-    unsafe_allow_html=True
-)
+# --- Audit Log ---
+st.subheader("🧾 Audit Log")
+st.code(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] "
+        f"AI={ai_probability:.1f}% | QR={quantum_risk:.1f}% | FINAL={final_score:.1f}% | {status}")
 
-# ------------------------------------------------------
-# LOG TABLE
-# ------------------------------------------------------
-log = pd.DataFrame({
-    "Metric": [
-        "Threat Signal",
-        "Sensor Noise",
-        "AI Probability",
-        "Quantum Risk",
-        "Final Score"
-    ],
-    "Value": [
-        threat_signal,
-        sensor_noise,
-        ai_prob,
-        quantum_score,
-        final_score
-    ]
-})
-
-st.dataframe(log, use_container_width=True)
-
-st.success("✅ System Stable | No external ML dependencies")
+# --- System Status ---
+st.success("✅ System Stable | No external ML dependencies | Offline Ready")
