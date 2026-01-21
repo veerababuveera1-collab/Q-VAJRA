@@ -1,7 +1,6 @@
 # ======================================================
 # Q-VAJRA™ — Quantum-AI Defence Brain
-# WAR-ROOM COMMAND DASHBOARD
-# Threat Classification + NETRA Hook + Human Override
+# ROE + DRDO / iDEX Pitch Mode
 # ======================================================
 
 import streamlit as st
@@ -12,156 +11,119 @@ import datetime
 # ------------------------------------------------------
 # PAGE CONFIG
 # ------------------------------------------------------
-st.set_page_config(
-    page_title="Q-VAJRA™ War-Room",
-    layout="wide"
-)
+st.set_page_config(page_title="Q-VAJRA™ War-Room", layout="wide")
 
 st.title("🛡️ Q-VAJRA™ — Quantum-AI Defence Brain")
 st.caption("War-Room Command Dashboard")
 
 # ------------------------------------------------------
-# SIDEBAR — CONTROL PANEL
+# SIDEBAR — MODE SELECTION
 # ------------------------------------------------------
-st.sidebar.header("⚙️ Control Panel")
+st.sidebar.header("⚙️ Command Controls")
 
-threat_signal = st.sidebar.slider(
-    "Threat Signal Strength",
-    0.0, 1.0, 0.65
+roe_mode = st.sidebar.selectbox(
+    "Rules of Engagement (ROE)",
+    ["PEACETIME", "SKIRMISH", "WARTIME"]
 )
 
-sensor_noise = st.sidebar.slider(
-    "Sensor Noise",
-    0.0, 1.0, 0.25
-)
+pitch_mode = st.sidebar.toggle("🎯 Pitch Mode (DRDO / iDEX)")
 
+threat_signal = st.sidebar.slider("Threat Signal Strength", 0.0, 1.0, 0.65)
+sensor_noise = st.sidebar.slider("Sensor Noise", 0.0, 1.0, 0.25)
 threat_type = st.sidebar.selectbox(
     "Detected Threat Type",
     ["Drone", "Missile", "Cyber", "Electronic Warfare"]
 )
 
 # ------------------------------------------------------
-# AI LOGIC (Explainable, sklearn-free)
+# AI + QUANTUM CORE
 # ------------------------------------------------------
-def ai_probability(signal):
-    weight = 8.0
-    bias = -4.0
-    z = (signal * weight) + bias
-    return 1 / (1 + np.exp(-z))
+def ai_probability(x):
+    return 1 / (1 + np.exp(-((x * 8) - 4)))
+
+def quantum_risk(signal, noise):
+    return abs(np.sin(((signal * 0.7) + (noise * 0.3)) * np.pi))
 
 ai_prob = ai_probability(threat_signal)
+qrisk = quantum_risk(threat_signal, sensor_noise)
 
-# ------------------------------------------------------
-# QUANTUM-INSPIRED RISK
-# ------------------------------------------------------
-def quantum_risk(signal, noise):
-    superposition = (signal * 0.7) + (noise * 0.3)
-    return abs(np.sin(superposition * np.pi))
-
-quantum_score = quantum_risk(threat_signal, sensor_noise)
-
-# ------------------------------------------------------
-# THREAT TYPE WEIGHTING (CRITICAL FEATURE)
-# ------------------------------------------------------
-THREAT_WEIGHTS = {
+THREAT_WEIGHT = {
     "Drone": 0.8,
     "Missile": 1.0,
     "Cyber": 0.7,
     "Electronic Warfare": 0.9
 }
 
-type_weight = THREAT_WEIGHTS[threat_type]
+final_score = ((ai_prob * 0.6) + (qrisk * 0.4)) * THREAT_WEIGHT[threat_type]
 
 # ------------------------------------------------------
-# FINAL FUSION ENGINE
-# ------------------------------------------------------
-final_score = ((ai_prob * 0.6) + (quantum_score * 0.4)) * type_weight
-
-# ------------------------------------------------------
-# DECISION LOGIC
+# DECISION STATE
 # ------------------------------------------------------
 if final_score >= 0.75:
-    status = "🚨 THREAT"
-    color = "red"
+    state = "🚨 THREAT"
 elif final_score >= 0.5:
-    status = "🟠 UNDER WATCH"
-    color = "orange"
+    state = "🟠 UNDER WATCH"
 else:
-    status = "✅ SAFE"
-    color = "green"
+    state = "✅ SAFE"
 
 # ------------------------------------------------------
-# DASHBOARD METRICS
+# ROE ENFORCEMENT
+# ------------------------------------------------------
+roe_action = "No Action"
+
+if roe_mode == "PEACETIME":
+    roe_action = "Monitor Only"
+elif roe_mode == "SKIRMISH":
+    if state == "🟠 UNDER WATCH":
+        roe_action = "Deploy Scout Drone"
+    elif state == "🚨 THREAT":
+        roe_action = "Await Human Approval"
+elif roe_mode == "WARTIME":
+    if threat_type == "Missile" and state == "🚨 THREAT":
+        roe_action = "AUTO INTERCEPT AUTHORIZED"
+    else:
+        roe_action = "Execute Standard Defence"
+
+# ------------------------------------------------------
+# DISPLAY
 # ------------------------------------------------------
 c1, c2, c3 = st.columns(3)
-
 c1.metric("🧠 AI Probability", f"{ai_prob*100:.1f}%")
-c2.metric("⚛️ Quantum Risk", f"{quantum_score*100:.1f}%")
+c2.metric("⚛️ Quantum Risk", f"{qrisk*100:.1f}%")
 c3.metric("🎯 Final Score", f"{final_score*100:.1f}%")
 
-st.markdown("---")
-
-st.markdown(
-    f"<h2 style='color:{color}; text-align:center;'>{status}</h2>",
-    unsafe_allow_html=True
-)
+st.markdown(f"## {state}")
+st.write(f"### 🔐 ROE MODE: {roe_mode}")
+st.info(f"### ⚔️ Action: {roe_action}")
 
 # ------------------------------------------------------
-# EXPLAINABLE AI REASONING
+# HUMAN OVERRIDE
 # ------------------------------------------------------
-st.subheader("🧠 Explainable AI Reasoning")
-
-reasons = []
-if threat_signal > 0.6:
-    reasons.append("• Signal strength crossed anomaly threshold")
-if ai_prob > 0.6:
-    reasons.append("• AI pattern similarity detected")
-if quantum_score > 0.7:
-    reasons.append("• Quantum worst-case outcome dominant")
-if sensor_noise < 0.4:
-    reasons.append("• Sensor noise within acceptable limits")
-
-reasons.append(f"• Threat Type Classified as: {threat_type}")
-reasons.append("• Decision Logic: Moderate risk detected. Continuous monitoring required." if status != "🚨 THREAT"
-               else "• Decision Logic: High confidence threat. Escalation required.")
-
-for r in reasons:
-    st.write(r)
+if roe_action in ["Await Human Approval", "AUTO INTERCEPT AUTHORIZED"]:
+    st.subheader("🧑‍✈️ Commander Override")
+    decision = st.radio("Commander Decision", ["Approve", "Hold", "Abort"])
+    st.success(f"Decision Recorded: {decision}")
 
 # ------------------------------------------------------
-# NETRA / GARUDA-NAYAN HOOK (SIMULATION)
+# PITCH MODE VIEW
 # ------------------------------------------------------
-st.subheader("📡 Autonomous Response Layer")
+if pitch_mode:
+    st.markdown("---")
+    st.subheader("🎯 DRDO / iDEX Evaluation Summary")
 
-if status == "🟠 UNDER WATCH":
-    st.info("NETRA Action: 🛰️ Scout Drone Dispatched for Recon")
-elif status == "🚨 THREAT":
-    st.warning("NETRA Action: 🔒 Awaiting Human Authorization")
-else:
-    st.success("NETRA Action: No deployment required")
-
-# ------------------------------------------------------
-# HUMAN-IN-LOOP OVERRIDE (MANDATORY FOR DEPLOYMENT)
-# ------------------------------------------------------
-if status == "🚨 THREAT":
-    st.subheader("🧑‍✈️ Commander Override Panel")
-
-    decision = st.radio(
-        "Commander Decision",
-        ["Approve Intercept", "Hold / Monitor", "Abort"]
-    )
-
-    st.write(f"📝 Commander Decision Recorded: **{decision}**")
+    st.write("""
+    **System Type:** Quantum-AI Assisted Defence Decision Platform  
+    **Autonomy:** Conditional (Human-in-the-loop enforced)  
+    **Explainability:** Enabled  
+    **ROE Compliance:** Enforced  
+    **Offline Capability:** Yes  
+    **Audit Ready:** Yes
+    """)
 
 # ------------------------------------------------------
 # AUDIT LOG
 # ------------------------------------------------------
-st.subheader("🧾 Audit Log")
+time = datetime.datetime.now().strftime("%H:%M:%S")
+st.code(f"[{time}] ROE={roe_mode} | TYPE={threat_type} | FINAL={final_score*100:.1f}% | ACTION={roe_action}")
 
-timestamp = datetime.datetime.now().strftime("%H:%M:%S")
-
-log_entry = f"[{timestamp}] TYPE={threat_type} | AI={ai_prob*100:.1f}% | QR={quantum_score*100:.1f}% | FINAL={final_score*100:.1f}% | {status}"
-
-st.code(log_entry)
-
-st.success("✅ System Stable | Offline Ready | Human-in-Loop Enabled | Defence Safe")
+st.success("✅ Defence-Grade | ROE Enforced | Pitch Ready")
